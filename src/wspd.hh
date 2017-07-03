@@ -27,14 +27,18 @@ struct wspd {
     decompose(split_tree.root);
   }
 
-  wspd(PointSet<INFO>& set, double s, bool)
-      : Set(set), split_tree(Set), sep(s) {}
-
   wspd(PointSet<INFO>& set, double s,
        std::function<void(tree<INFO>*)>& splitter)
       : Set(set), split_tree(Set, splitter), sep(s) {
     decompose(split_tree.root);
   }
+
+  /*
+   * No decompose version, usefull for external implementation of the
+   * decomposition (like parallel implementation.)
+   */
+  wspd(PointSet<INFO>& set, double s, bool)
+      : Set(set), split_tree(Set), sep(s) {}
 
   wspd(PointSet<INFO>& set, double s,
        std::function<void(tree<INFO>*)>& splitter, bool)
@@ -84,12 +88,6 @@ struct wspd {
     findpairs(n->left, n->right);
     decompose(n->left);
     decompose(n->right);
-  }
-
-  void display() {
-    for (const auto& p : pairs) {
-      std::cout << "<" << p.first << "," << p.second << ">\n";
-    }
   }
 };
 
