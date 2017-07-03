@@ -68,37 +68,9 @@ struct graph {
       return g;
     }
 
+    /* Don't build graph, usefull in order to use an external implementation */
     graph operator()(bool) { return g; }
   };
-
-  void info_out(FILE* file, const std::function<std::string(INFO)>& printer) {
-    for (size_t i = 0; i < info.size(); i++) {
-      fprintf(file, "  %zu [%s];\n", i, printer(info[i]).c_str());
-    }
-  }
-
-  void edges_print(FILE* file) {
-    for (auto e : edges) {
-      fprintf(file, "  %u -- %u;\n", e.first, e.second);
-    }
-  }
-
-  void dot_output(FILE* file,
-                  const std::function<std::string(INFO)>& info_printer) {
-    fprintf(file, "graph {\n");
-    info_out(file, info_printer);
-    edges_print(file);
-    fprintf(file, "}\n");
-  }
-
-  void edge_lists_csv(FILE* file, const PointSet<INFO>& Set) {
-    fprintf(file, "Source,Target,Distance,Weight,type\n");
-    for (auto e : edges) {
-      double d = Set.dist(e.first, e.second);
-      fprintf(file, "%u,%u,%g,%g,undirected\n", e.first, e.second, d,
-              1 / (d * d));
-    }
-  }
 };
 
 #endif /* GRAPH_HH_ */
