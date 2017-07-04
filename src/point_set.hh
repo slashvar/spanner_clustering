@@ -46,7 +46,6 @@ struct PointSet {
         low(dim),
         sizes(dim),
         upper(dim) {
-    double time;
     for (size_t j = 0; j < points.size(); j++) {
       for (size_t i = 0; i < dim; i++) {
         dimensions[i].push_back(j);

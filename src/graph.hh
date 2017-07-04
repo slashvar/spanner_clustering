@@ -60,7 +60,7 @@ struct graph {
         double stretch, std::function<void(tree<INFO>*)>& splitter, bool)
       : order(o),
         info(inf),
-        W(Set, 4 * (stretch + 1) / (stretch - 1, true), splitter) {}
+        W(Set, 4 * (stretch + 1) / (stretch - 1), splitter, true) {}
 
   void add_edge(unsigned u, unsigned v) {
     if (v < u) std::swap(u, v);

@@ -182,13 +182,6 @@ struct tree {
         right->split();
       }
     }
-
-    void display() {
-      std::clog << "  center:";
-      for (double x : center) std::clog << " " << x;
-      std::clog << "\n";
-      std::clog << "  Radius: " << radius << "\n";
-    }
   };
 
   PointSet<INFO>& Set;
