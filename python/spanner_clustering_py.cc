@@ -49,6 +49,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Python.h>
 #include <structmember.h>
 
+#include <chrono>
+#include <iostream>
 #include <valarray>
 #include <vector>
 
@@ -80,6 +82,8 @@ graph_out build_graph(size_t dim, std::vector<sample>& points, double stretch)
   std::vector<unsigned> info;
   for (unsigned i = 0; i < points.size(); i++)
     info.push_back(i);
+  // Just some timer for debug, to be removed
+  auto t0 = std::chrono::steady_clock::now();
   PointSet<unsigned> S(dim, points, info);
   auto g = graph<unsigned>::builder(S, stretch)();
   graph_out res;
@@ -87,6 +91,11 @@ graph_out build_graph(size_t dim, std::vector<sample>& points, double stretch)
     res.edges.push_back({p.first, p.second, S.dist(p.first, p.second)});
   }
   clustering<unsigned> clusters(S, g.W);
+  auto t1 = std::chrono::steady_clock::now();
+  {
+    std::chrono::duration<double> diff = t1 - t0;
+    std::clog << "Spanner+cluster time: " << diff.count() << "s\n";
+  }
   res.membership = clusters.membership;
   res.number_of_clusters = clusters.nb_clusters;
   return res;
