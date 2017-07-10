@@ -86,8 +86,11 @@ struct tree {
 
     bool close_to(std::shared_ptr<node> n, double avg_radius) {
       double d = distance(center, n->center);
+      /*
       double r = n->radius > 0.0 ? n->radius : avg_radius;
       r += radius > 0.0 ? radius : avg_radius;
+      */
+      double r = radius == 0.0 || n->radius == 0.0 ? avg_radius : radius + n->radius;
       return d < r;
     }
 
