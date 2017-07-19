@@ -1,13 +1,9 @@
-'''Train a Siamese MLP on pairs of digits from the MNIST dataset.
-It follows Hadsell-et-al.'06 [1] by computing the Euclidean distance on the
-output of the shared network and by optimizing the contrastive loss (see paper
-for mode details).
-[1] "Dimensionality Reduction by Learning an Invariant Mapping"
-    http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
-Gets to 99.5% test accuracy after 20 epochs.
-3 seconds per epoch on a Titan X GPU
-'''
+'''Reduce MNIST dataset to fixed dimension vectors in euclidean space.
 
+The projection is done through a siamese network with a convnet as first layer.
+
+This code is freely inspired by Keras examples.
+'''
 from __future__ import absolute_import
 from __future__ import print_function
 import numpy as np
@@ -21,6 +17,7 @@ from keras.optimizers import RMSprop
 from keras import backend as K
 
 img_rows, img_cols = 28, 28
+epochs = 40
 
 def euclidean_distance(vects):
     x, y = vects
@@ -111,7 +108,6 @@ print(x_train.shape[0], 'train samples')
 print(x_test.shape[0], 'test samples')
 
 
-epochs = 5
 
 # create training+test positive and negative pairs
 digit_indices = [np.where(y_train == i)[0] for i in range(10)]
