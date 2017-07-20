@@ -17,7 +17,7 @@ from keras.optimizers import RMSprop
 from keras import backend as K
 
 img_rows, img_cols = 28, 28
-epochs = 40
+epochs = 100
 
 def euclidean_distance(vects):
     x, y = vects
@@ -64,18 +64,18 @@ def create_base_network(input_shape):
     seq.add(Conv2D(32, kernel_size=(3, 3),
                      activation='relu',
                      input_shape=input_shape))
-#    seq.add(Conv2D(64, (3, 3), activation='relu'))
+    seq.add(Conv2D(64, (3, 3), activation='relu'))
     seq.add(MaxPooling2D(pool_size=(2, 2)))
     seq.add(Dropout(0.25))
     seq.add(Flatten())
     seq.add(Dense(128, activation='relu'))
     seq.add(Dropout(0.2))
-    seq.add(Dense(64, activation='relu'))
-    seq.add(Dropout(0.2))
+#    seq.add(Dense(64, activation='relu'))
+#    seq.add(Dropout(0.2))
     seq.add(Dense(32, activation='relu'))
     seq.add(Dropout(0.2))
-    seq.add(Dense(16, activation='relu'))
-    seq.add(Dropout(0.2))
+#    seq.add(Dense(16, activation='relu'))
+#    seq.add(Dropout(0.2))
     seq.add(Dense(8, activation='relu'))
     seq.add(Dropout(0.2))
     seq.add(Dense(4, activation='relu'))
@@ -111,7 +111,7 @@ print(x_test.shape[0], 'test samples')
 
 # create training+test positive and negative pairs
 digit_indices = [np.where(y_train == i)[0] for i in range(10)]
-tr_pairs, tr_y = create_pairs(x_train, digit_indices, amount=0.1)
+tr_pairs, tr_y = create_pairs(x_train, digit_indices)
 
 digit_indices = [np.where(y_test == i)[0] for i in range(10)]
 te_pairs, te_y = create_pairs(x_test, digit_indices)
