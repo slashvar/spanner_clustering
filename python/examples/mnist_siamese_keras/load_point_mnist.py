@@ -57,7 +57,7 @@ if __name__ == '__main__':
     if len(argv) > 1:
         fname = argv[1]
     dim, points, orig_clusters = prepare(check_points(load_data(fname)))
-    g = spanner_graph.SpannerGraph(dim, points, 32)
+    g = spanner_graph.SpannerGraph(dim, points, 10000)
     generate_dot(g, orig_clusters)
 
 
