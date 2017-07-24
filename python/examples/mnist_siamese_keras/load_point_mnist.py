@@ -1,5 +1,6 @@
 import csv
 from sys import stdout, argv
+from math import log1p
 
 import spanner_graph
 
@@ -57,7 +58,7 @@ if __name__ == '__main__':
     if len(argv) > 1:
         fname = argv[1]
     dim, points, orig_clusters = prepare(check_points(load_data(fname)))
-    g = spanner_graph.SpannerGraph(dim, points, 10000)
+    g = spanner_graph.SpannerGraph(dim, points, 8)
     generate_dot(g, orig_clusters)
 
 
