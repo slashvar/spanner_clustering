@@ -69,16 +69,16 @@ def create_base_network(input_shape):
     seq.add(Dropout(0.25))
     seq.add(Flatten())
     seq.add(Dense(128, activation='relu'))
-    seq.add(Dropout(0.2))
+    seq.add(Dropout(0.5))
 #    seq.add(Dense(64, activation='relu'))
 #    seq.add(Dropout(0.2))
-    seq.add(Dense(32, activation='relu'))
-    seq.add(Dropout(0.2))
+#    seq.add(Dense(32, activation='relu'))
+#    seq.add(Dropout(0.2))
 #    seq.add(Dense(16, activation='relu'))
 #    seq.add(Dropout(0.2))
-    seq.add(Dense(8, activation='relu'))
-    seq.add(Dropout(0.2))
-    seq.add(Dense(4, activation='relu'))
+#    seq.add(Dense(8, activation='relu'))
+#    seq.add(Dropout(0.2))
+    seq.add(Dense(2, activation='linear'))
     return seq
 
 
@@ -168,5 +168,5 @@ print(projection_model.input_shape)
 with open("points.csv", 'w') as f:
     for i in range(len(x_test)):
         pred = projection_model.predict(np.array([x_test[i]]), verbose=0)
-        pred[0] = [ pred[0][i] * 10 for i in range(len(pred[0])) ]
+        pred[0] = [ pred[0][i] for i in range(len(pred[0])) ]
         print("{}_{}".format(y_test[i], i), y_test[i], *(pred[0]), sep=',', file=f)
