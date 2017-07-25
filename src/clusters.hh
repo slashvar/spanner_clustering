@@ -127,7 +127,11 @@ struct clustering {
       for (; sec != heads.end(); sec++) {
         auto v = sec->first;
         long vc = sec->second;
+# if 0
         if (u->close_to(v, avg_radius))
+          if (unify(clusters, uc, vc)) nb_clusters--;
+# endif
+        if (!W.wellsepareted(u, v))
           if (unify(clusters, uc, vc)) nb_clusters--;
       }
     }
