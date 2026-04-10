@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <atomic>
 #include <functional>
 #include <memory>
-#include <unordered_set>
 #include <valarray>
 #include <vector>
 
@@ -50,6 +49,7 @@ struct tree {
     std::vector<size_t> points;
     sample low, sizes, center, upper;
     double radius;
+    size_t max_dim;
     size_t id;
     tree<INFO>& cur_tree;
     std::atomic_ulong next_point;
@@ -78,7 +78,7 @@ struct tree {
       return n % points.size();
     }
 
-    bool leaf() { return radius == 0.0 && left == 0 && right == 0; }
+    bool leaf() { return radius == 0.0 && !left && !right; }
 
     double dist(std::shared_ptr<node> n) {
       return distance(center, n->center) - radius - n->radius;
@@ -86,10 +86,6 @@ struct tree {
 
     bool close_to(std::shared_ptr<node> n, double avg_radius) {
       double d = distance(center, n->center);
-      /*
-      double r = n->radius > 0.0 ? n->radius : avg_radius;
-      r += radius > 0.0 ? radius : avg_radius;
-      */
       double r = radius == 0.0 || n->radius == 0.0 ? avg_radius : radius + n->radius;
       return d < r;
     }
@@ -112,13 +108,14 @@ struct tree {
       return !!right && right->include_tree_traversal(n);
     }
 
-    size_t maxd() {
-      size_t m = 0;
+    void update_max_dim() {
+      max_dim = 0;
       for (size_t i = 1; i < sizes.size(); i++) {
-        if (sizes[i] > sizes[m]) m = i;
+        if (sizes[i] > sizes[max_dim]) max_dim = i;
       }
-      return m;
     }
+
+    size_t maxd() { return max_dim; }
 
     size_t split_point(size_t split_d, double split_val) {
       auto& v = dimensions[split_d];
@@ -126,7 +123,7 @@ struct tree {
       while (l < r) {
         size_t mid = l + (r - l) / 2;
         if (Set.get(split_d, v[mid]) == split_val) {
-          for (; Set.get(split_d, v[mid - 1]) == split_val; mid--) continue;
+          for (; mid > 0 && Set.get(split_d, v[mid - 1]) == split_val; mid--) continue;
           return mid;
         }
         if (split_val < Set.get(split_d, v[mid]))
@@ -138,15 +135,15 @@ struct tree {
     }
 
     void distribute(size_t d) {
-      std::unordered_set<size_t> sleft;
-      for (size_t p : left->dimensions[d]) sleft.insert(p);
+      std::vector<bool> in_left(Set.points.size(), false);
+      for (size_t p : left->dimensions[d]) in_left[p] = true;
       for (size_t i = 0; i < dimensions.size(); i++) {
         if (i != d) {
           for (size_t p : dimensions[i]) {
-            if (sleft.find(p) == sleft.end())
-              right->dimensions[i].push_back(p);
-            else
+            if (in_left[p])
               left->dimensions[i].push_back(p);
+            else
+              right->dimensions[i].push_back(p);
           }
         }
       }
@@ -156,8 +153,8 @@ struct tree {
 
     bool split_r() {
       if (radius == 0.0) {
-        left = 0;
-        right = 0;
+        left = nullptr;
+        right = nullptr;
         return false;
       }
       size_t split_d = maxd();

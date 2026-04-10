@@ -30,10 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define WSPD_HH_
 
 #include <functional>
-#include <iostream>
 #include <memory>
-#include <unordered_map>
-#include <unordered_set>
 
 #include "point_set.hh"
 #include "tree.hh"
@@ -82,23 +79,11 @@ struct wspd {
     b2->is_in_pair = true;
   }
 
-  void findpairs(box b1, box b2) {
+  void findpairs(box b1, box b2,
+                  std::function<void(box, box)> edge = nullptr) {
     if (wellsepareted(b1, b2)) {
       addpair(b1, b2);
-      return;
-    }
-    size_t d1 = b1->maxd(), d2 = b2->maxd();
-    if (b1->sizes[d1] > b2->sizes[d2]) {
-      std::swap(b1, b2);
-    }
-    findpairs(b1, b2->left);
-    findpairs(b1, b2->right);
-  }
-
-  void findpairs(box b1, box b2, std::function<void(box, box)>& edge) {
-    if (wellsepareted(b1, b2)) {
-      addpair(b1, b2);
-      edge(b1, b2);
+      if (edge) edge(b1, b2);
       return;
     }
     size_t d1 = b1->maxd(), d2 = b2->maxd();
