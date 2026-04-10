@@ -32,9 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using sample = std::valarray<double>;
 
-double norm(const sample& v) { return std::sqrt((v * v).sum()); }
+inline double norm(const sample& v) { return std::sqrt((v * v).sum()); }
 
-double distance(const sample& v1, const sample& v2) { return norm(v1 - v2); }
+inline double distance(const sample& v1, const sample& v2) { return norm(v1 - v2); }
 
 template <typename INFO>
 struct PointSet {
@@ -66,6 +66,8 @@ struct PointSet {
 
   double get(size_t d, size_t p) { return points[p][d]; }
 
+  void update_max_dim() {}
+
   template <typename BOX>
   void updateBox(BOX b) {
     for (size_t i = 0; i < dim; i++) {
@@ -78,6 +80,7 @@ struct PointSet {
       b->radius = 0.0;
     else
       b->radius = norm(b->sizes) / 2;
+    b->update_max_dim();
   }
 
   void updateBox() { this->updateBox<PointSet<INFO>*>(this); }

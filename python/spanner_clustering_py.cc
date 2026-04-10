@@ -49,9 +49,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Python.h>
 #include <structmember.h>
 
-#include <chrono>
-#include <iostream>
-#include <valarray>
 #include <vector>
 
 #include <clusters.hh>
@@ -82,8 +79,6 @@ graph_out build_graph(size_t dim, std::vector<sample>& points, double stretch)
   std::vector<unsigned> info;
   for (unsigned i = 0; i < points.size(); i++)
     info.push_back(i);
-  // Just some timer for debug, to be removed
-  auto t0 = std::chrono::steady_clock::now();
   PointSet<unsigned> S(dim, points, info);
   auto g = graph<unsigned>::builder(S, stretch)();
   graph_out res;
@@ -91,11 +86,6 @@ graph_out build_graph(size_t dim, std::vector<sample>& points, double stretch)
     res.edges.push_back({p.first, p.second, S.dist(p.first, p.second)});
   }
   clustering<unsigned> clusters(S, g.W);
-  auto t1 = std::chrono::steady_clock::now();
-  {
-    std::chrono::duration<double> diff = t1 - t0;
-    std::clog << "Spanner+cluster time: " << diff.count() << "s\n";
-  }
   res.membership = clusters.membership;
   res.number_of_clusters = clusters.nb_clusters;
   return res;
@@ -119,42 +109,34 @@ struct SpannerGraph {
 static PyObject *spanner_graph_error;
 
 static
-sample build_sample(PyObject *smpl, size_t dim)
+bool build_points(PyObject *py_points, size_t dim, std::vector<sample>& out)
 {
-  sample v(dim);
-  for (size_t i = 0; i < dim; i++)
-    v[i] = PyFloat_AS_DOUBLE(PySequence_GetItem(smpl, i));
-  return v;
-}
-
-static
-std::vector<sample> build_points(PyObject *py_points, size_t dim)
-{
+  if (!PySequence_Check(py_points))
+    return false;
   size_t len = PySequence_Size(py_points);
-  std::vector<sample> points;
+  out.reserve(len);
   for (size_t i = 0; i < len; i++) {
-    points.push_back(build_sample(PySequence_GetItem(py_points, i), dim));
-  }
-  return points;
-}
-
-static
-bool check_points_list(PyObject *py_points, size_t dim)
-{
-  if (PySequence_Check(py_points)) {
-    size_t len = PySequence_Size(py_points);
-    for (size_t i = 0; i < len; i++) {
-      auto item = PySequence_GetItem(py_points, i);
-      if (!PySequence_Check(item) || PySequence_Size(item) != (Py_ssize_t)dim)
-        return false;
-      for (size_t j = 0; j < dim; j++) {
-        if (!PyFloat_Check(PySequence_GetItem(item, j)))
-          return false;
-      }
+    PyObject *item = PySequence_GetItem(py_points, i);
+    if (!item) return false;
+    if (!PySequence_Check(item) || PySequence_Size(item) != (Py_ssize_t)dim) {
+      Py_DECREF(item);
+      return false;
     }
-    return true;
+    sample v(dim);
+    for (size_t j = 0; j < dim; j++) {
+      PyObject *coord = PySequence_GetItem(item, j);
+      if (!coord || !PyFloat_Check(coord)) {
+        Py_XDECREF(coord);
+        Py_DECREF(item);
+        return false;
+      }
+      v[j] = PyFloat_AS_DOUBLE(coord);
+      Py_DECREF(coord);
+    }
+    Py_DECREF(item);
+    out.push_back(std::move(v));
   }
-  return false;
+  return true;
 }
 
 static
@@ -166,7 +148,7 @@ bool generate_py_object(SpannerGraph* self, graph_out& g)
    * XXX: maybe some place for exceptions, also need to check for refcount
    * decrement ...
    */
-  self->edges = PyList_New(0);
+  self->edges = PyList_New(g.edges.size());
   if (!self->edges)
     return false;
 
@@ -195,12 +177,11 @@ bool generate_py_object(SpannerGraph* self, graph_out& g)
   /*
    * Now edges
    */
-  for (const auto& e : g.edges) {
-    auto item = Py_BuildValue("IId", e.src, e.dst, e.dist);
+  for (size_t i = 0; i < g.edges.size(); i++) {
+    auto item = Py_BuildValue("IId", g.edges[i].src, g.edges[i].dst, g.edges[i].dist);
     if (!item)
       return false;
-    if (PyList_Append(self->edges, item) == -1)
-      return false;
+    PyList_SET_ITEM(self->edges, i, item);
   }
 
   return true;
@@ -227,12 +208,11 @@ int SpannerGraph_init(SpannerGraph *self, PyObject *args, PyObject*)
     return -1;
   }
 
-  if (!check_points_list(py_points, dim)) {
+  std::vector<sample> points;
+  if (!build_points(py_points, dim, points)) {
     PyErr_SetString(spanner_graph_error, "Wrong parameters form");
     return -1;
   }
-
-  auto points = build_points(py_points, dim);
 
   auto g = build_graph(dim, points, stretch);
 
