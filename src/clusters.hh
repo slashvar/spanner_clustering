@@ -74,8 +74,7 @@ struct clustering {
           membership(Set.points.size()),
           avg_radius(0.0) {
         long count = find_heads(split_tree.root);
-        nb_clusters = nb_heads;
-        avg_radius = avg_radius / count;
+        if (count > 0) avg_radius = avg_radius / count;
         reconnect();
     }
 
@@ -104,14 +103,13 @@ struct clustering {
     }
 
     long find_heads(std::shared_ptr<node> n) {
-        long non_null_head = 0;
+        if (!n) return 0;
         if (n->is_in_pair) {
             heads[n] = nb_heads;
             avg_radius += n->radius;
-            non_null_head += n->radius > 0.0;
             nb_heads++;
             assign_parent(n, n);
-            return non_null_head;
+            return n->radius > 0.0 ? 1 : 0;
         }
         return find_heads(n->left) + find_heads(n->right);
     }
@@ -132,16 +130,14 @@ struct clustering {
             }
         }
         std::unordered_map<long, long> cids;
-        long cur = 0;
+        long next_id = 0;
         for (auto& h_ : heads) {
             auto h = h_.first;
             long ch = find(clusters, h_.second);
-            if (cids.find(ch) == cids.end()) {
-                cids[ch] = cur;
-                cur++;
-            }
-            h_.second = cids[ch];
-            for (size_t p : h->points) membership[p] = cids[ch];
+            auto [it, inserted] = cids.try_emplace(ch, next_id);
+            if (inserted) next_id++;
+            h_.second = it->second;
+            for (size_t p : h->points) membership[p] = it->second;
         }
     }
 

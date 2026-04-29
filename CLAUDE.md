@@ -2,12 +2,12 @@
 
 ## Project
 
-Geometric spanner construction using Well Separated Pairs Decomposition (WSPD) with a clustering algorithm built on the fair split tree and union-find. Header-only C++14 library with Python bindings via the CPython C API.
+Geometric spanner construction using Well Separated Pairs Decomposition (WSPD) with a clustering algorithm built on the fair split tree and union-find. Header-only C++20 library with Python bindings via the CPython C API.
 
 ## Build & Test
 
 ```bash
-# C++ tests (no dependencies beyond a C++14 compiler)
+# C++ tests (no dependencies beyond a C++20 compiler)
 make -C tests test
 
 # Python extension + tests (requires Python 3 dev headers)
@@ -42,7 +42,6 @@ Python binding: `python/spanner_clustering_py.cc` exposes `SpannerGraph(dim, poi
 
 ## Known Bugs
 
-- `clustering::find_heads()` crashes on single-point input — recurses into null children when root is a leaf with no WSPD pairs (`clusters.hh:116`)
 - `PointSet::updateBox()` has UB on empty points — calls `.front()`/`.back()` on empty dimension vectors (`point_set.hh:74-75`)
 
 ## Roadmap

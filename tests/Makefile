@@ -1,5 +1,5 @@
 CXX      = c++
-CXXFLAGS = -std=c++14 -Wall -Wextra -g -I../src
+CXXFLAGS = -std=c++20 -Wall -Wextra -g -I../src
 TESTS    = test_point_set test_union_find test_tree test_wspd test_integration
 
 all: $(TESTS)

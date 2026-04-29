@@ -69,16 +69,15 @@ void graph_edges_valid() {
 }
 
 void single_point_graph_only() {
-    // NOTE: clustering crashes on a single point (find_heads recurses into
-    // null children when root is a leaf with no WSPD pairs). Only test the
-    // graph layer here.
     std::vector<sample> pts = {{5.0, 5.0}};
     std::vector<unsigned> info = {0};
     PointSet<unsigned> S(2, pts, info);
     auto g = graph<unsigned>::builder(S, 2.0)();
+    clustering<unsigned> clusters(S, g.W);
 
     ASSERT_EQ(g.edges.size(), 0u);
     ASSERT_EQ(g.W.pairs.size(), 0u);
+    ASSERT_EQ(clusters.membership.size(), 1u);
 }
 
 void two_points_cluster_sanity() {
