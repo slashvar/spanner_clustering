@@ -46,23 +46,12 @@ struct wspd {
 
     std::vector<wspair> pairs;
 
-    wspd(PointSet<INFO>& set, double s) : Set(set), split_tree(Set), sep(s) {
-        decompose(split_tree.root);
-    }
-
-    wspd(PointSet<INFO>& set, double s, std::function<void(tree<INFO>*)>& splitter)
+    wspd(PointSet<INFO>& set, double s,
+         const std::function<void(tree<INFO>*)>& splitter = &tree<INFO>::seq_split,
+         bool auto_decompose = true)
         : Set(set), split_tree(Set, splitter), sep(s) {
-        decompose(split_tree.root);
+        if (auto_decompose) decompose(split_tree.root);
     }
-
-    /*
-     * No decompose version, usefull for external implementation of the
-     * decomposition (like parallel implementation.)
-     */
-    wspd(PointSet<INFO>& set, double s, bool) : Set(set), split_tree(Set), sep(s) {}
-
-    wspd(PointSet<INFO>& set, double s, std::function<void(tree<INFO>*)>& splitter, bool)
-        : Set(set), split_tree(Set, splitter), sep(s) {}
 
     template <typename BOX>
     bool wellsepareted(BOX b1, BOX b2) {

@@ -64,15 +64,6 @@ struct tree {
               cur_tree(ct),
               next_point(0) {}
 
-        node(PointSet<INFO>& s, tree<INFO>& ct, bool)
-            : Set(s),
-              is_in_pair(false),
-              low(Set.dim),
-              sizes(Set.dim),
-              upper(Set.dim),
-              cur_tree(ct),
-              next_point(0) {}
-
         unsigned long next_point_id() {
             unsigned long n = next_point.fetch_add(1, std::memory_order_relaxed);
             return n % points.size();
@@ -93,18 +84,6 @@ struct tree {
         bool include(std::shared_ptr<node> n) {
             if (radius < n->radius) return false;
             return (low <= n->low).min() && (upper >= n->upper).min();
-        }
-
-        bool include_radius_based(std::shared_ptr<node> n) {
-            return n->radius < radius && distance(center, n->center) <= radius;
-        }
-
-        bool include_tree_traversal(std::shared_ptr<node> n) {
-            if (n->id == id) return true;
-            size_t split_d = maxd();
-            double split_val = low[split_d] + sizes[split_d] / 2;
-            if (n->low[split_d] < split_val) return !!left && left->include_tree_traversal(n);
-            return !!right && right->include_tree_traversal(n);
         }
 
         void update_max_dim() {
@@ -133,17 +112,16 @@ struct tree {
             return l;
         }
 
-        void distribute(size_t d) {
+        void distribute(size_t split_d) {
             std::vector<bool> in_left(Set.points.size(), false);
-            for (size_t p : left->dimensions[d]) in_left[p] = true;
-            for (size_t i = 0; i < dimensions.size(); i++) {
-                if (i != d) {
-                    for (size_t p : dimensions[i]) {
-                        if (in_left[p])
-                            left->dimensions[i].push_back(p);
-                        else
-                            right->dimensions[i].push_back(p);
-                    }
+            for (size_t p : left->dimensions[split_d]) in_left[p] = true;
+            for (size_t d = 0; d < dimensions.size(); d++) {
+                if (d == split_d) continue;
+                for (size_t p : dimensions[d]) {
+                    if (in_left[p])
+                        left->dimensions[d].push_back(p);
+                    else
+                        right->dimensions[d].push_back(p);
                 }
             }
             Set.updateBox(left);
@@ -151,11 +129,7 @@ struct tree {
         }
 
         bool split_r() {
-            if (radius == 0.0) {
-                left = nullptr;
-                right = nullptr;
-                return false;
-            }
+            if (radius == 0.0) return false;
             size_t split_d = maxd();
             double split_val = low[split_d] + sizes[split_d] / 2;
             size_t p = split_point(split_d, split_val);
@@ -190,8 +164,8 @@ struct tree {
     static void seq_split(tree<INFO>* tree) { tree->root->split(); }
 
     tree(PointSet<INFO>& s, const std::function<void(tree<INFO>*)>& splitter = &seq_split)
-        : Set(s), root(std::make_shared<node>(Set, *this, false)), node_ids(0) {
-        for (auto d : Set.dimensions) root->dimensions.push_back(d);
+        : Set(s), root(std::make_shared<node>(Set, *this)), node_ids(0) {
+        root->dimensions = Set.dimensions;
         Set.updateBox(root);
         root->id = next_id();
         splitter(this);

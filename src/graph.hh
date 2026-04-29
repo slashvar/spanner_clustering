@@ -46,16 +46,11 @@ struct graph {
     const std::vector<INFO>& info;
     wspd<INFO> W;
 
-    graph(unsigned o, const std::vector<INFO>& inf, PointSet<INFO>& Set, double stretch)
-        : order(o), info(inf), W(Set, 4 * (stretch + 1) / (stretch - 1)) {}
-
     graph(unsigned o, const std::vector<INFO>& inf, PointSet<INFO>& Set, double stretch,
-          std::function<void(tree<INFO>*)>& splitter)
-        : order(o), info(inf), W(Set, 4 * (stretch + 1) / (stretch - 1), splitter) {}
-
-    graph(unsigned o, const std::vector<INFO>& inf, PointSet<INFO>& Set, double stretch,
-          std::function<void(tree<INFO>*)>& splitter, bool)
-        : order(o), info(inf), W(Set, 4 * (stretch + 1) / (stretch - 1), splitter, true) {}
+          const std::function<void(tree<INFO>*)>& splitter = &tree<INFO>::seq_split,
+          bool auto_decompose = true)
+        : order(o), info(inf),
+          W(Set, 4 * (stretch + 1) / (stretch - 1), splitter, auto_decompose) {}
 
     void add_edge(unsigned u, unsigned v) {
         if (v < u) std::swap(u, v);
@@ -67,10 +62,8 @@ struct graph {
         graph<INFO> g;
         std::unordered_map<typename wspd<INFO>::box, size_t> next_pos;
 
-        builder(PointSet<INFO>& s, double stretch)
-            : Set(s), g(Set.points.size(), Set.infos, Set, stretch) {}
-
-        builder(PointSet<INFO>& s, double stretch, std::function<void(tree<INFO>*)>& splitter)
+        builder(PointSet<INFO>& s, double stretch,
+                const std::function<void(tree<INFO>*)>& splitter = &tree<INFO>::seq_split)
             : Set(s), g(Set.points.size(), Set.infos, Set, stretch, splitter) {}
 
         size_t next(typename wspd<INFO>::box node) {

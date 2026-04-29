@@ -7,7 +7,7 @@ INCLUDE_DIRS = ['../src']
 spannerModule = Extension (
         'spanner_graph',
         sources = ['spanner_clustering_py.cc'],
-        extra_compile_args = ['-std=c++14', '-O3', '-Wno-missing-field-initializers'],
+        extra_compile_args = ['-std=c++20', '-O3', '-Wno-missing-field-initializers'],
         include_dirs = INCLUDE_DIRS
         )
 
