@@ -1,0 +1,10 @@
+[build-system]
+requires = ['meson-python>=0.15']
+build-backend = 'mesonpy'
+
+[project]
+name = 'spanner_clustering'
+dynamic = ['version']
+description = 'Geometric spanner and WSPD-based clustering'
+license = { text = 'BSD-2-Clause' }
+requires-python = '>=3.8'
