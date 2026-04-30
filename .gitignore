@@ -4,3 +4,6 @@ dist/
 .venv/
 .pytest_cache/
 __pycache__/
+subprojects/*/
+subprojects/packagecache/
+subprojects/.wraplock
