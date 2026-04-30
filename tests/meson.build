@@ -12,8 +12,12 @@ test_names = [
 needs_codesign = host_machine.system() == 'darwin' and host_machine.cpu_family() == 'aarch64'
 codesign = find_program('codesign', required: false)
 
+tests_sources = [files('test_harness.hh')]
+
 foreach t : test_names
-    exe = executable(t, t + '.cc', dependencies: spanner_clustering_dep)
+    src = files(t + '.cc')
+    tests_sources += src
+    exe = executable(t, src, dependencies: spanner_clustering_dep)
     deps = []
     if needs_codesign and codesign.found()
         deps += custom_target(

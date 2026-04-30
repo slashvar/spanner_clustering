@@ -49,7 +49,8 @@ struct graph {
     graph(unsigned o, const std::vector<INFO>& inf, PointSet<INFO>& Set, double stretch,
           const std::function<void(tree<INFO>*)>& splitter = &tree<INFO>::seq_split,
           bool auto_decompose = true)
-        : order(o), info(inf),
+        : order(o),
+          info(inf),
           W(Set, 4 * (stretch + 1) / (stretch - 1), splitter, auto_decompose) {}
 
     void add_edge(unsigned u, unsigned v) {
