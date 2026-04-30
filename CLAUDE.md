@@ -25,9 +25,13 @@ On macOS arm64, `tests/meson.build` adds an explicit `codesign` step after each 
 
 `.clang-format` at repo root: Google base, 4-space indent, 100 column limit.
 
+**After editing any C++ file, run the format target before committing:**
+
 ```bash
-clang-format -i src/*.hh python/spanner_clustering_py.cc tests/test_harness.hh tests/test_*.cc
+meson compile -C build format
 ```
+
+The validation suite includes a `format` test (`meson test -C build`) that fails on any unformatted file. Filter it out with `meson test -C build --no-suite lint` when iterating.
 
 ## Architecture
 
