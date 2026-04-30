@@ -6,7 +6,7 @@ Geometric spanner construction using Well Separated Pairs Decomposition (WSPD) w
 
 ## Build & Test
 
-Build system: Meson (with `meson-python` for the Python extension).
+Build system: Meson (with `meson-python` for the Python extension). Tests use Google Test (fetched as a Meson subproject if not installed system-wide).
 
 ```bash
 # C++ tests
@@ -51,6 +51,5 @@ Python binding: `python/spanner_clustering_py.cc` exposes `SpannerGraph(dim, poi
 
 ## Roadmap
 
-- Migrate test framework from minimal assert harness to Google Test
 - Add clang-tidy checks (consume `build/compile_commands.json`)
 - Implement a community detection algorithm (Louvain or more recent)

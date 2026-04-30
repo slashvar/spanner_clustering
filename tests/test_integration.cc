@@ -1,6 +1,7 @@
+#include <gtest/gtest.h>
+
 #include "clusters.hh"
 #include "graph.hh"
-#include "test_harness.hh"
 
 static std::vector<sample> make_cluster(double cx, double cy, int n) {
     std::vector<sample> pts;
@@ -12,7 +13,7 @@ static std::vector<sample> make_cluster(double cx, double cy, int n) {
     return pts;
 }
 
-void three_clusters_detected() {
+TEST(IntegrationTest, ThreeClustersDetected) {
     auto c0 = make_cluster(0.0, 0.0, 10);
     auto c1 = make_cluster(100.0, 0.0, 10);
     auto c2 = make_cluster(0.0, 100.0, 10);
@@ -29,22 +30,22 @@ void three_clusters_detected() {
     auto g = graph<unsigned>::builder(S, 2.0)();
     clustering<unsigned> clusters(S, g.W);
 
-    ASSERT_EQ(clusters.nb_clusters, 3u);
+    EXPECT_EQ(clusters.nb_clusters, 3u);
 
     // All points within a group share the same membership
     for (int i = 1; i < 10; i++) {
-        ASSERT_EQ(clusters.membership[i], clusters.membership[0]);
-        ASSERT_EQ(clusters.membership[10 + i], clusters.membership[10]);
-        ASSERT_EQ(clusters.membership[20 + i], clusters.membership[20]);
+        EXPECT_EQ(clusters.membership[i], clusters.membership[0]);
+        EXPECT_EQ(clusters.membership[10 + i], clusters.membership[10]);
+        EXPECT_EQ(clusters.membership[20 + i], clusters.membership[20]);
     }
 
     // Different groups have different memberships
-    ASSERT_TRUE(clusters.membership[0] != clusters.membership[10]);
-    ASSERT_TRUE(clusters.membership[0] != clusters.membership[20]);
-    ASSERT_TRUE(clusters.membership[10] != clusters.membership[20]);
+    EXPECT_NE(clusters.membership[0], clusters.membership[10]);
+    EXPECT_NE(clusters.membership[0], clusters.membership[20]);
+    EXPECT_NE(clusters.membership[10], clusters.membership[20]);
 }
 
-void graph_edges_valid() {
+TEST(IntegrationTest, GraphEdgesValid) {
     auto c0 = make_cluster(0.0, 0.0, 10);
     auto c1 = make_cluster(100.0, 0.0, 10);
 
@@ -58,29 +59,29 @@ void graph_edges_valid() {
     PointSet<unsigned> S(2, pts, info);
     auto g = graph<unsigned>::builder(S, 2.0)();
 
-    ASSERT_TRUE(g.edges.size() > 0);
+    EXPECT_GT(g.edges.size(), 0u);
     for (const auto& e : g.edges) {
         // Edges are normalized: u < v
-        ASSERT_TRUE(e.first < e.second);
+        EXPECT_LT(e.first, e.second);
         // Indices in range
-        ASSERT_TRUE(e.first < pts.size());
-        ASSERT_TRUE(e.second < pts.size());
+        EXPECT_LT(e.first, pts.size());
+        EXPECT_LT(e.second, pts.size());
     }
 }
 
-void single_point_graph_only() {
+TEST(IntegrationTest, SinglePointGraphOnly) {
     std::vector<sample> pts = {{5.0, 5.0}};
     std::vector<unsigned> info = {0};
     PointSet<unsigned> S(2, pts, info);
     auto g = graph<unsigned>::builder(S, 2.0)();
     clustering<unsigned> clusters(S, g.W);
 
-    ASSERT_EQ(g.edges.size(), 0u);
-    ASSERT_EQ(g.W.pairs.size(), 0u);
-    ASSERT_EQ(clusters.membership.size(), 1u);
+    EXPECT_EQ(g.edges.size(), 0u);
+    EXPECT_EQ(g.W.pairs.size(), 0u);
+    EXPECT_EQ(clusters.membership.size(), 1u);
 }
 
-void two_points_cluster_sanity() {
+TEST(IntegrationTest, TwoPointsClusterSanity) {
     std::vector<sample> pts = {{0.0, 0.0}, {1.0, 0.0}};
     std::vector<unsigned> info = {0, 1};
     PointSet<unsigned> S(2, pts, info);
@@ -88,14 +89,7 @@ void two_points_cluster_sanity() {
     clustering<unsigned> clusters(S, g.W);
 
     // Two points should produce valid membership and at most 2 clusters
-    ASSERT_EQ(clusters.membership.size(), 2u);
-    ASSERT_TRUE(clusters.nb_clusters >= 1 && clusters.nb_clusters <= 2);
-}
-
-int main() {
-    RUN_TEST(three_clusters_detected);
-    RUN_TEST(graph_edges_valid);
-    RUN_TEST(single_point_graph_only);
-    RUN_TEST(two_points_cluster_sanity);
-    SUMMARY();
+    EXPECT_EQ(clusters.membership.size(), 2u);
+    EXPECT_GE(clusters.nb_clusters, 1u);
+    EXPECT_LE(clusters.nb_clusters, 2u);
 }
